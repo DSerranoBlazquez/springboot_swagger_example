@@ -1,30 +1,58 @@
 package guru.springframework.controllers;
 
 import guru.springframework.domain.Product;
-import guru.springframework.services.ProductService;
+import guru.springframework.exceptions.ElementoNoExistente;
+import guru.springframework.exceptions.ElementoYaExistente;
+import guru.springframework.services.IProductService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/product")
+@RequestMapping("/productos")
 @Api(value="onlinestore", description="Operations pertaining to products in Online Store")
 public class ProductController {
 
-    private ProductService productService;
+	@Autowired
+    private IProductService productService;
 
-    @Autowired
-    public void setProductService(ProductService productService) {
-        this.productService = productService;
-    }
-
-    @ApiOperation(value = "View a list of available products",response = Iterable.class)
+	 // @RequestMapping(value = "/list", method= RequestMethod.GET, produces = "application/json")
+	@GetMapping("/")
+	public List<Product> getAll(){
+	       List<Product> productList = productService.getAll();
+	        return productList;
+	    }
+	
+	@GetMapping("/{id}")
+	public Product getById(Long id){
+	        return productService.getById(id);
+	    }
+	
+	@PostMapping("/")
+	@ExceptionHandler({ElementoYaExistente.class})
+	public void create(@RequestBody Product product)	{
+		productService.create(product);
+	}
+	
+	@PutMapping("/{id}")
+	@ExceptionHandler({ElementoNoExistente.class})
+	public void update(@PathVariable Long id, @RequestBody Product product)	{
+		productService.update(id, product);
+	}
+	
+	@DeleteMapping("/{id}")
+	public void delete(@PathVariable Long id)	{
+		productService.delete(id);
+	}
+/*
+	@ApiOperation(value = "View a list of available products",response = Iterable.class)
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Successfully retrieved list"),
             @ApiResponse(code = 401, message = "You are not authorized to view the resource"),
@@ -65,9 +93,9 @@ public class ProductController {
     @ApiOperation(value = "Delete a product")
     @RequestMapping(value="/delete/{id}", method = RequestMethod.DELETE, produces = "application/json")
     public ResponseEntity delete(@PathVariable Integer id){
-        productService.deleteProduct(id);
+        productService.delete(id);
         return new ResponseEntity("Product deleted successfully", HttpStatus.OK);
 
     }
-
+*/
 }
